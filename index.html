@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>The Great Pizza Hunt Challenge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+<body class="animated-gradient flex items-center justify-center min-h-screen">
+    <div class="text-center w-full max-w-md">
+        <div class="bg-white/80 backdrop-blur-sm border-4 border-green-600 rounded-xl mb-8 p-2">
+            <h1 class="text-6xl font-['Bangers'] text-green-600 tracking-wider flex items-center justify-center">
+                <span class="text-5xl mr-2">🍕</span>
+                <span>The Great Pizza Hunt Challenge</span>
+                <span class="text-5xl ml-2">🍕</span>
+            </h1>
+        </div>
+
+        <div class="bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-2xl border-4 border-green-600 relative overflow-hidden">
+            <div class="space-y-4">
+                <div class="flex items-center">
+                    <div class="flex-grow">
+                        <label class="block mb-2 text-sm font-bold text-gray-700">Password 1:</label>
+                        <div class="flex items-center">
+                            <input 
+                                type="text" 
+                                id="password1" 
+                                class="w-full border-2 border-gray-300 p-3 rounded-lg 
+                                       focus:outline-none focus:ring-2 focus:ring-green-400 
+                                       font-['Courier_Prime'] text-lg transition-all duration-300
+                                       hover:scale-105"
+                                placeholder="Enter first password"
+                            >
+                            <div 
+                                id="light1" 
+                                class="ml-4 w-8 h-8 rounded-full bg-red-500 transition-all duration-300 shadow-md"
+                            ></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center">
+                    <div class="flex-grow">
+                        <label class="block mb-2 text-sm font-bold text-gray-700">Password 2:</label>
+                        <div class="flex items-center">
+                            <input 
+                                type="text" 
+                                id="password2" 
+                                class="w-full border-2 border-gray-300 p-3 rounded-lg 
+                                       focus:outline-none focus:ring-2 focus:ring-green-400 
+                                       font-['Courier_Prime'] text-lg transition-all duration-300
+                                       hover:scale-105"
+                                placeholder="Enter second password"
+                            >
+                            <div 
+                                id="light2" 
+                                class="ml-4 w-8 h-8 rounded-full bg-red-500 transition-all duration-300 shadow-md"
+                            ></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center">
+                    <div class="flex-grow">
+                        <label class="block mb-2 text-sm font-bold text-gray-700">Password 3:</label>
+                        <div class="flex items-center">
+                            <input 
+                                type="text" 
+                                id="password3" 
+                                class="w-full border-2 border-gray-300 p-3 rounded-lg 
+                                       focus:outline-none focus:ring-2 focus:ring-green-400 
+                                       font-['Courier_Prime'] text-lg transition-all duration-300
+                                       hover:scale-105"
+                                placeholder="Enter third password"
+                            >
+                            <div 
+                                id="light3" 
+                                class="ml-4 w-8 h-8 rounded-full bg-red-500 transition-all duration-300 shadow-md"
+                            ></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Confetti canvas now has higher z-index than win message -->
+    <canvas id="confettiCanvas" class="fixed pointer-events-none inset-0 z-60 hidden"></canvas>
+    
+    <div 
+        id="winMessage" 
+        class="hidden fixed inset-0 bg-green-100/90 z-50 flex items-center justify-center"
+    >
+        <div class="bg-white p-16 rounded-3xl shadow-2xl border-8 border-green-500 
+                    text-center text-6xl font-['Bangers'] text-green-600 
+                    w-11/12 max-w-4xl transform rotate-3 
+                    animate-bounce-full animate-scale-in space-y-4">
+            <div class="animate-bounce-full">🎉 Congratulations! 🍕</div>
+            <div class="text-4xl animate-bounce-full">You Won the Pizza Hunt!</div>
+            <div id="winTimestamp" class="text-2xl text-gray-600 mt-4"></div>
+        </div>
+    </div>
+
+    <div 
+        id="rewardMessage" 
+        class="fixed bottom-0 left-0 right-0 transform translate-y-full 
+               bg-green-600 text-white text-center p-4 
+               transition-transform duration-500 ease-in-out z-70"
+    >
+        Take a screenshot and go to Kevin for your reward! 🏆
+    </div>
+
+    <style>
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        @keyframes bounce-small {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes bounce-full {
+            0%, 100% { transform: scale(1) rotate(3deg); }
+            50% { transform: scale(1.1) rotate(3deg); }
+        }
+
+        @keyframes scale-in {
+            0% { transform: scale(0.5) rotate(3deg); opacity: 0; }
+            100% { transform: scale(1) rotate(3deg); opacity: 1; }
+        }
+
+        @keyframes gradient-animation {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .animated-gradient {
+            background: linear-gradient(45deg, white, #ecfccb, #86efac, white);
+            background-size: 400% 400%;
+            animation: gradient-animation 8s ease infinite;
+        }
+
+        .animate-shake {
+            animation: shake 0.5s;
+        }
+
+        .animate-bounce-small {
+            animation: bounce-small 0.3s;
+        }
+
+        .animate-bounce-full {
+            animation: bounce-full 1s infinite;
+        }
+
+        .animate-scale-in {
+            animation: scale-in 0.5s ease-out;
+        }
+        
+        /* Add custom z-index values */
+        .z-60 {
+            z-index: 60;
+        }
+        
+        .z-70 {
+            z-index: 70;
+        }
+    </style>
+
+    <script>
+        // Correct passwords
+        const passwords = {
+            password1: 'trebol',
+            password2: 'green bear',
+            password3: '1983'
+        };
+
+        // Get input and light elements
+        const inputs = {
+            password1: document.getElementById('password1'),
+            password2: document.getElementById('password2'),
+            password3: document.getElementById('password3')
+        };
+
+        const lights = {
+            password1: document.getElementById('light1'),
+            password2: document.getElementById('light2'),
+            password3: document.getElementById('light3')
+        };
+
+        const winMessage = document.getElementById('winMessage');
+        const rewardMessage = document.getElementById('rewardMessage');
+        const winTimestamp = document.getElementById('winTimestamp');
+        const confettiCanvas = document.getElementById('confettiCanvas');
+
+        // Track correct passwords
+        const correctPasswords = {
+            password1: false,
+            password2: false,
+            password3: false
+        };
+
+        // Confetti setup
+        const confettiContext = confettiCanvas.getContext('2d');
+        const particles = [];
+        const particleCount = 100; // Increased particle count
+        
+        function resizeCanvas() {
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        // Confetti particle with improved natural movement
+        class Particle {
+            constructor() {
+                this.reset();
+                // Initial positions spread across the screen for a more natural start
+                this.y = Math.random() * confettiCanvas.height * 1.5 - confettiCanvas.height;
+            }
+            
+            reset() {
+                // Position
+                this.x = Math.random() * confettiCanvas.width;
+                this.y = -10 - Math.random() * 20; // Start slightly above the viewport
+                
+                // Size - more variety
+                this.width = Math.random() * 8 + 3;
+                this.height = Math.random() * 8 + 2;
+                
+                // Movement
+                this.speed = Math.random() * 3 + 1; // Varied falling speed
+                this.vx = Math.random() * 1.5 - 0.75; // Horizontal movement
+                this.vy = this.speed; // Vertical movement
+                
+                // Swinging motion with randomness
+                this.amplitude = Math.random() * 10 + 3;
+                this.frequency = Math.random() * 0.02 + 0.01;
+                this.swingOffset = Math.random() * Math.PI * 2; // Random phase offset
+                
+                // Rotation
+                this.rotation = Math.random() * 360;
+                this.rotationSpeed = Math.random() * 1.5 - 0.75;
+                
+                // Appearance
+                this.color = `hsl(${Math.random() * 360}, ${Math.random() * 40 + 60}%, ${Math.random() * 40 + 50}%)`;
+                this.opacity = Math.random() * 0.4 + 0.4;
+                this.fadeSpeed = Math.random() * 0.01 + 0.007;
+                
+                // Shape variation - 0: rectangle, 1: circle
+                this.shape = Math.random() > 0.3 ? 0 : 1;
+                
+                // Life counter for variation over time
+                this.life = 0;
+            }
+            
+            update() {
+                this.life += 0.016; // Approximately 1/60 for 60fps
+                
+                // Vertical movement
+                this.y += this.vy;
+                
+                // Horizontal movement with sine wave for swinging
+                this.x += this.vx + Math.sin(this.life * this.frequency + this.swingOffset) * this.amplitude * 0.05;
+                
+                // Rotation
+                this.rotation += this.rotationSpeed;
+                
+                // Gradual fade out
+                if (this.y > confettiCanvas.height * 0.6) {
+                    this.opacity -= this.fadeSpeed;
+                }
+                
+                // Reset if out of bounds or completely faded
+                if (this.y > confettiCanvas.height || 
+                    this.x < -50 || 
+                    this.x > confettiCanvas.width + 50 || 
+                    this.opacity <= 0) {
+                    if (confettiRunning) {
+                        this.reset();
+                    }
+                }
+            }
+            
+            draw() {
+                confettiContext.save();
+                confettiContext.translate(this.x, this.y);
+                confettiContext.rotate(this.rotation * Math.PI / 180);
+                confettiContext.globalAlpha = this.opacity;
+                confettiContext.fillStyle = this.color;
+                
+                // Draw different shapes
+                if (this.shape === 0) {
+                    // Rectangle
+                    confettiContext.fillRect(-this.width / 2, -this.height / 2, this.width, this.height);
+                } else {
+                    // Circle
+                    confettiContext.beginPath();
+                    confettiContext.arc(0, 0, this.width / 2, 0, Math.PI * 2);
+                    confettiContext.fill();
+                }
+                
+                confettiContext.restore();
+            }
+        }
+        
+        function createParticles() {
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+        }
+        
+        // Add new particles periodically for continuous flow
+        function addNewParticles() {
+            if (!confettiRunning) return;
+            
+            // Add a small burst of new particles
+            for (let i = 0; i < 3; i++) {
+                particles.push(new Particle());
+            }
+            
+            setTimeout(addNewParticles, 1500); // Add more every 300ms
+        }
+        
+        let confettiRunning = false;
+        let animationId;
+        
+        function startConfetti() {
+            confettiCanvas.classList.remove('hidden');
+            confettiRunning = true;
+            createParticles();
+            animateConfetti();
+            addNewParticles(); // Start adding particles periodically
+        }
+        
+        function animateConfetti() {
+            if (!confettiRunning) return;
+            
+            confettiContext.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            
+            // Apply wind effect occasionally
+            if (Math.random() < 0.003) {
+                applyWindEffect();
+            }
+            
+            for (let particle of particles) {
+                particle.update();
+                particle.draw();
+            }
+            
+            // Check if all particles are gone
+            const activeParticles = particles.filter(p => p.opacity > 0);
+            if (activeParticles.length === 0 && !confettiRunning) {
+                stopConfetti();
+                return;
+            }
+            
+            animationId = requestAnimationFrame(animateConfetti);
+        }
+        
+        // Apply a gentle wind effect to all particles
+        function applyWindEffect() {
+            const windStrength = (Math.random() - 0.5) * 0.2;
+            particles.forEach(p => {
+                p.vx += windStrength;
+            });
+        }
+        
+        function stopConfetti() {
+            confettiRunning = false;
+            // Let animation continue until particles fade away naturally
+            setTimeout(() => {
+                cancelAnimationFrame(animationId);
+                confettiContext.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+                confettiCanvas.classList.add('hidden');
+                particles.length = 0; // Clear all particles
+            }, 1000);
+        }
+
+        // Check passwords for each input
+        Object.keys(inputs).forEach(key => {
+            inputs[key].addEventListener('change', function() {
+                const inputValue = this.value.toLowerCase().trim();
+                
+                if (inputValue === passwords[key]) {
+                    // Update input border
+                    this.classList.remove('border-gray-300', 'border-red-500');
+                    this.classList.add('border-green-500');
+                    
+                    // Add bounce animation for correct input
+                    this.classList.add('animate-bounce-small');
+                    setTimeout(() => {
+                        this.classList.remove('animate-bounce-small');
+                    }, 300);
+                    
+                    // Update light color
+                    lights[key].classList.remove('bg-red-500');
+                    lights[key].classList.add('bg-green-500');
+                    
+                    correctPasswords[key] = true;
+                } else {
+                    // Reset input border
+                    this.classList.remove('border-green-500');
+                    this.classList.add('border-red-500');
+                    
+                    // Add shake animation for incorrect input
+                    this.classList.add('animate-shake');
+                    setTimeout(() => {
+                        this.classList.remove('animate-shake');
+                    }, 500);
+                    
+                    // Reset light color
+                    lights[key].classList.remove('bg-green-500');
+                    lights[key].classList.add('bg-red-500');
+                    
+                    correctPasswords[key] = false;
+                }
+
+                // Check if all passwords are correct
+                if (Object.values(correctPasswords).every(val => val === true)) {
+                    // Get current date and time
+                    const now = new Date();
+                    const formattedDateTime = now.toLocaleString('en-US', {
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric', 
+                        hour: '2-digit', 
+                        minute: '2-digit', 
+                        second: '2-digit'
+                    });
+
+                    // Set timestamp in the win message
+                    winTimestamp.textContent = formattedDateTime;
+
+                    // Wait 1 second before showing win message and confetti
+                    setTimeout(() => {
+                        //startConfetti(); // Start confetti before showing win message
+                        
+                        // Slight delay before showing win message after confetti starts
+                        setTimeout(() => {
+                            winMessage.classList.remove('hidden');
+                            startConfetti(); // Start confetti before showing win message
+                            
+                            // Wait another 3 seconds before showing reward message
+                            setTimeout(() => {
+                                rewardMessage.style.transform = 'translateY(0)';
+                            }, 3000);
+                        }, 500);
+                    }, 800);
+                }
+            });
+        });
+
+        // Close win message on click but keep confetti running
+        winMessage.addEventListener('click', function() {
+            this.classList.add('hidden');
+        });
+
+        // Close reward message on click
+        rewardMessage.addEventListener('click', function() {
+            this.style.transform = 'translateY(100%)';
+            // Optional: Stop confetti when the reward message is dismissed
+            // stopConfetti();
+        });
+    </script>
+</body>
+</html>
